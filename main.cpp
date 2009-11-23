@@ -9,9 +9,21 @@
 #include "FRec.h"
 #include "globals.h"
 
-int main(int arc, char* argv[])
+int main(int argc, char* argv[])
 {
-	ChainedIndex index("text.idx", "test.dat");
+	string indexFile(DEFAULT_INDEX_FILE);
+	string datafile(DEFAULT_DATA_FILE);
+
+	if(argc > 1)
+	{
+		indexFile = argv[1];
+		if (argc > 2)
+		{
+			datafile = argv[2];
+		}
+	}
+
+	ChainedIndex index(indexFile ,datafile);
 	filereader consoleReader;
 	consoleReader.open('r');
 	while (!consoleReader.eof())
@@ -61,7 +73,7 @@ int main(int arc, char* argv[])
 		}
 		else if (command == "print")
 		{
-
+			index.printIndex();
 		}
 		else if (command == "end")
 		{

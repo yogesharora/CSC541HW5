@@ -11,6 +11,7 @@
 DatabaseFile::DatabaseFile(const string& f) :
 	fileName(f)
 {
+	// TODO
 	filereader fileReader;
 	fileReader.open(fileName, 'w');
 	fileReader.close();

@@ -46,7 +46,6 @@ public:
 
 	bool insertRecord(const FRec& rec);
 	bool findKey(int key, FRec& result);
-
 	bool deleteKey(int key);
 	void printIndex();
 };

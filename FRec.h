@@ -33,7 +33,7 @@ struct FRec
 
 	void print()
 	{
-		printf("%d %f %c %d %d %d %d %d\n", num, amt, type, acct, hour, min, day, year);
+		printf("%d %.2f %c %d %d %d %d %d\n", num, amt, type, acct, hour, min, day, year);
 	}
 };
 #endif /* FREC_H_ */

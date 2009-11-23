@@ -15,6 +15,7 @@ ChainedIndex::ChainedIndex(const string& f, const string& dbFileName) :
 	filereader file;
 	ChNode node;
 
+	// TODO
 	//	int rc = file.open(fileName, 'x');
 	//	if(rc==0)
 	//	{
@@ -166,11 +167,24 @@ bool ChainedIndex::deleteKey(int key)
 				// if it is first record of chain
 				if(curIndexRecord.key==firstIndexRecord.key)
 				{
-					// write an index record there
-					ChNode empty;
-					long offsetToWite = file.offset() -  sizeof(ChNode);
-					file.seek(offsetToWite, BEGIN);
-					file.write_raw((char *) &empty, sizeof(ChNode));
+					if(curIndexRecord.nextOffset==INVALID_OFFSET)
+					{
+						// write an index record there
+						ChNode empty;
+						long offsetToWite = file.offset() - sizeof(ChNode);
+						file.seek(offsetToWite, BEGIN);
+						file.write_raw((char *) &empty, sizeof(ChNode));
+					}
+					else
+					{
+						// read the next in chain and place it here
+						ChNode empty;
+						long offsetToWite = file.offset() - sizeof(ChNode);
+						file.seek(curIndexRecord.nextOffset, BEGIN);
+						file.read_raw((char *) &empty, sizeof(ChNode));
+						file.seek(offsetToWite, BEGIN);
+						file.write_raw((char *) &empty, sizeof(ChNode));
+					}
 				}
 				else
 				{
@@ -196,5 +210,31 @@ bool ChainedIndex::deleteKey(int key)
 
 void ChainedIndex::printIndex()
 {
+	filereader file;
+	file.open(fileName, 'x');
 
+	for (int key = 0; key < HASH_TABLE_SIZE; key++)
+	{
+		printf("%d:" ,key);
+		long firstIndexOffset = hash(key) * sizeof(ChNode);
+		ChNode firstIndexRecord;
+		file.seek(firstIndexOffset, BEGIN);
+		file.read_raw((char *) &firstIndexRecord, sizeof(ChNode));
+
+		if (firstIndexRecord.key != INVALID_KEY)
+		{
+			long curIndexOffset = firstIndexOffset;
+			ChNode curIndexRecord = firstIndexRecord;
+			do
+			{
+				file.seek(curIndexOffset, BEGIN);
+				file.read_raw((char *) &curIndexRecord, sizeof(ChNode));
+
+				printf(" %d/%ld", curIndexRecord.key, curIndexRecord.recOffset);
+				curIndexOffset = curIndexRecord.nextOffset;
+			} while (curIndexOffset != INVALID_OFFSET);
+		}
+		printf("\n");
+	}
+	file.close();
 }
