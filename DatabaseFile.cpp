@@ -32,11 +32,9 @@ long DatabaseFile::insert(const FRec& rec)
 	return offset;
 }
 
-FRec DatabaseFile::load(long offset)
+void DatabaseFile::load(long offset, FRec &rec)
 {
-	FRec rec;
 	filereader fileReader;
 	fileReader.open(fileName, 'r');
 	fileReader.read_raw((char*)&rec, sizeof(FRec));
-	return rec;
 }

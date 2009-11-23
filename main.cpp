@@ -17,4 +17,7 @@ int main(int arc, char* argv[])
 	rec.num= 1101;
 	index.insertRecord(rec);
 	index.insertRecord(rec);
+	index.findKey(100, rec);
+	index.findKey(1101, rec);
+	index.findKey(1102, rec);
 }

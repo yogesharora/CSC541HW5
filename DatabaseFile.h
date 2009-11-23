@@ -19,7 +19,7 @@ public:
 	~DatabaseFile();
 
 	long insert(const FRec& rec);
-	FRec load(long offset);
+	void load(long offset, FRec& rec);
 };
 
 #endif /* DATABASEFILE_H_ */
