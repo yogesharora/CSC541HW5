@@ -43,8 +43,9 @@ int ChainedIndex::hash(int key)
 	return key % HASH_TABLE_SIZE;
 }
 
-void ChainedIndex::insertRecord(const FRec& rec)
+bool ChainedIndex::insertRecord(const FRec& rec)
 {
+	bool inserted = true;
 	filereader file;
 	file.open(fileName, 'x');
 	long firstIndexOffset = hash(rec.num) * sizeof(ChNode);
@@ -57,21 +58,19 @@ void ChainedIndex::insertRecord(const FRec& rec)
 	{
 		long curIndexOffset = firstIndexOffset;
 		ChNode curIndexRecord = firstIndexRecord;
-		long nextIndexOffset;
 		do
 		{
-			nextIndexOffset = curIndexRecord.nextOffset;
-
 			file.seek(curIndexOffset, BEGIN);
 			file.read_raw((char *) &curIndexRecord, sizeof(ChNode));
 
 			if (curIndexRecord.key == rec.num)
 			{
-				printf("Record num is a duplicate.");
-				return;
+				inserted = false;
+				file.close();
+				return inserted;
 			}
 
-			curIndexOffset = nextIndexOffset;
+			curIndexOffset = curIndexRecord.nextOffset;
 		} while (curIndexOffset != INVALID_OFFSET);
 
 		// we dont have duplicate
@@ -103,6 +102,7 @@ void ChainedIndex::insertRecord(const FRec& rec)
 		file.write_raw((char*) &firstIndexRecord, sizeof(ChNode));
 	}
 	file.close();
+	return inserted;
 }
 
 bool ChainedIndex::findKey(int key, FRec& result)
@@ -119,11 +119,8 @@ bool ChainedIndex::findKey(int key, FRec& result)
 	{
 		long curIndexOffset = firstIndexOffset;
 		ChNode curIndexRecord = firstIndexRecord;
-		long nextIndexOffset;
 		do
 		{
-			nextIndexOffset = curIndexRecord.nextOffset;
-
 			file.seek(curIndexOffset, BEGIN);
 			file.read_raw((char *) &curIndexRecord, sizeof(ChNode));
 
@@ -135,7 +132,7 @@ bool ChainedIndex::findKey(int key, FRec& result)
 				break;
 			}
 
-			curIndexOffset = nextIndexOffset;
+			curIndexOffset = curIndexRecord.nextOffset;
 		} while (curIndexOffset != INVALID_OFFSET);
 	}
 
@@ -143,9 +140,58 @@ bool ChainedIndex::findKey(int key, FRec& result)
 	return found;
 }
 
-void ChainedIndex::deleteKey(int key)
+bool ChainedIndex::deleteKey(int key)
 {
+	bool found = false;
+	filereader file;
+	file.open(fileName, 'x');
+	long firstIndexOffset = hash(key) * sizeof(ChNode);
+	ChNode firstIndexRecord;
+	file.seek(firstIndexOffset, BEGIN);
+	file.read_raw((char *) &firstIndexRecord, sizeof(ChNode));
 
+	if (firstIndexRecord.key != INVALID_KEY)
+	{
+		long curIndexOffset = firstIndexOffset;
+		ChNode curIndexRecord = firstIndexRecord;
+		long prevIndexOffset;
+		do
+		{
+			file.seek(curIndexOffset, BEGIN);
+			file.read_raw((char *) &curIndexRecord, sizeof(ChNode));
+
+			if (curIndexRecord.key == key)
+			{
+				found = true;
+				// if it is first record of chain
+				if(curIndexRecord.key==firstIndexRecord.key)
+				{
+					// write an index record there
+					ChNode empty;
+					long offsetToWite = file.offset() -  sizeof(ChNode);
+					file.seek(offsetToWite, BEGIN);
+					file.write_raw((char *) &empty, sizeof(ChNode));
+				}
+				else
+				{
+					ChNode prevIndexRecord;
+					file.seek(prevIndexOffset, BEGIN);
+					file.read_raw((char *) &prevIndexRecord, sizeof(ChNode));
+					prevIndexRecord.nextOffset=curIndexRecord.nextOffset;
+					file.seek(prevIndexOffset, BEGIN);
+					file.write_raw((char *) &prevIndexRecord, sizeof(ChNode));
+				}
+
+				break;
+			}
+
+			prevIndexOffset = curIndexOffset;
+			curIndexOffset = curIndexRecord.nextOffset;
+		} while (curIndexOffset != INVALID_OFFSET);
+	}
+
+	file.close();
+	return found;
 }
 
 void ChainedIndex::printIndex()

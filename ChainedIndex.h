@@ -44,10 +44,10 @@ public:
 	ChainedIndex(const string& fileName, const string& dbFileName);
 	~ChainedIndex();
 
-	void insertRecord(const FRec& rec);
+	bool insertRecord(const FRec& rec);
 	bool findKey(int key, FRec& result);
 
-	void deleteKey(int key);
+	bool deleteKey(int key);
 	void printIndex();
 };
 

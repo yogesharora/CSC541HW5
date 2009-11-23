@@ -20,4 +20,6 @@ int main(int arc, char* argv[])
 	index.findKey(100, rec);
 	index.findKey(1101, rec);
 	index.findKey(1102, rec);
+	index.deleteKey(1101);
+	index.deleteKey(100);
 }
