@@ -7,7 +7,10 @@
 
 #ifndef FREC_H_
 #define FREC_H_
+
 #include "str.h"
+#include "stdio.h"
+#include "globals.h"
 
 struct FRec
 {
@@ -27,5 +30,10 @@ struct FRec
 
 	FRec(): num(0), amt(0), type('D'), acct(0), hour(0), min(0), day(0), year(0)
 	{}
+
+	void print()
+	{
+		printf("%d %f %c %d %d %d %d %d\n", num, amt, type, acct, hour, min, day, year);
+	}
 };
 #endif /* FREC_H_ */
