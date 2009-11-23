@@ -16,7 +16,7 @@
 
 class ChainedIndex
 {
-	const string& fileName;
+	string fileName;
 	DatabaseFile dbFile;
 
 	struct ChNode // Chained hash table node
@@ -39,7 +39,7 @@ class ChainedIndex
 	};
 
 	int hash(int key);
-	bool findKey(int key, FRec& result, filereader& file);
+
 public:
 	ChainedIndex(const string& fileName, const string& dbFileName);
 	~ChainedIndex();

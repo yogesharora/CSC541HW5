@@ -15,17 +15,23 @@ ChainedIndex::ChainedIndex(const string& f, const string& dbFileName) :
 	filereader file;
 	ChNode node;
 
-	file.open(fileName, 'x');
+//	int rc = file.open(fileName, 'x');
+//	if(rc==0)
+//	{
+		// file does not exist
+		file.open(fileName, 'w');
+		file.close();
+		file.open(fileName, 'x');
+//	}
 	file.seek(0, END);
 	if (file.offset() == 0)
 	{
-		node.key = -1;
 		for (int i = 0; i < HASH_TABLE_SIZE; i++)
 		{
 			file.write_raw((char *) &node, sizeof(ChNode));
 		}
 	}
-
+	file.close();
 }
 
 ChainedIndex::~ChainedIndex()
@@ -41,27 +47,32 @@ void ChainedIndex::insertRecord(const FRec& rec)
 {
 	filereader file;
 	file.open(fileName, 'x');
-	int found = false;
-	int next = hash(rec.num) * sizeof(ChNode);
-	ChNode prevIndex;
+	long firstIndexOffset = hash(rec.num) * sizeof(ChNode);
+	ChNode firstIndexRecord;
 	// if it is first record
-	file.seek(next, BEGIN);
-	file.read_raw((char *) &prevIndex, sizeof(ChNode));
+	file.seek(firstIndexOffset, BEGIN);
+	file.read_raw((char *) &firstIndexRecord, sizeof(ChNode));
 
-	if (prevIndex.key != INVALID_KEY)
+	if (firstIndexRecord.key != INVALID_KEY)
 	{
+		long curIndexOffset = firstIndexOffset;
+		ChNode curIndexRecord = firstIndexRecord;
+		long nextIndexOffset;
 		do
 		{
-			file.seek(next, BEGIN);
-			file.read_raw((char *) &prevIndex, sizeof(ChNode));
-			if (prevIndex.key == rec.num)
+			nextIndexOffset = curIndexRecord.nextOffset;
+
+			file.seek(curIndexOffset, BEGIN);
+			file.read_raw((char *) &curIndexRecord, sizeof(ChNode));
+
+			if (curIndexRecord.key == rec.num)
 			{
 				printf("Record num is a duplicate.");
 				return;
 			}
-			next = prevIndex.nextOffset;
 
-		} while (next != INVALID_OFFSET);
+			curIndexOffset = nextIndexOffset;
+		} while (curIndexOffset != INVALID_OFFSET);
 
 		// we dont have duplicate
 		// write the database record
@@ -74,23 +85,22 @@ void ChainedIndex::insertRecord(const FRec& rec)
 		ChNode newIndex(rec.num, newRecOffset);
 		file.write_raw((char*) &newIndex, sizeof(ChNode));
 
-		// write the prev index record
-		prevIndex.nextOffset = newIndexOffset;
-		file.seek(prevIndexOffset, END);
-		file.write_raw((char*) &prevIndex, sizeof(ChNode));
+		// write the cur index record
+		curIndexRecord.nextOffset = newIndexOffset;
+		file.seek(prevIndexOffset, BEGIN);
+		file.write_raw((char*) &curIndexRecord, sizeof(ChNode));
 	}
 	else
 	{
 		// its the first record of the chain
 		int newRecOffset= dbFile.insert(rec);
-		int prevIndexOffset = file.offset() - sizeof(ChNode);
 		// write the database record
 
 		// write the prev index record
-		prevIndex.key = rec.num;
-		prevIndex.recOffset = newRecOffset;
-		file.seek(prevIndexOffset, END);
-		file.write_raw((char*) &prevIndex, sizeof(ChNode));
+		firstIndexRecord.key = rec.num;
+		firstIndexRecord.recOffset = newRecOffset;
+		file.seek(firstIndexOffset, BEGIN);
+		file.write_raw((char*) &firstIndexRecord, sizeof(ChNode));
 	}
 	file.close();
 }

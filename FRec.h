@@ -10,7 +10,8 @@
 #include "str.h"
 
 struct FRec
-{ // Financial record structure
+{
+	// Financial record structure
 	int num; // Transaction number
 	float amt; // Amount of the transaction
 	char type; // Transaction type (D=debit, C=credit)
@@ -24,6 +25,7 @@ struct FRec
 		num(n), amt(a), type(t), acct(ac), hour(h), min(m), day(d), year(y)
 	{}
 
-	FRec() {}
+	FRec(): num(0), amt(0), type('D'), acct(0), hour(0), min(0), day(0), year(0)
+	{}
 };
 #endif /* FREC_H_ */

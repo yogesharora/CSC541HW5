@@ -13,7 +13,7 @@
 
 class DatabaseFile
 {
-	const string& fileName;
+	string fileName;
 public:
 	DatabaseFile(const string& fileName);
 	~DatabaseFile();

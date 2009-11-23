@@ -24,8 +24,9 @@ DatabaseFile::~DatabaseFile()
 long DatabaseFile::insert(const FRec& rec)
 {
 	filereader fileReader;
-	fileReader.open(fileName, 'a');
+	fileReader.open(fileName, 'x');
 	fileReader.clear();
+	fileReader.seek(0, END);
 	long offset = fileReader.offset();
 	fileReader.write_raw((char*)&rec, sizeof(FRec));
 	return offset;
