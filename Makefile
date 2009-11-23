@@ -3,7 +3,7 @@
 all: assn_5
 default: assn_5
 
-OBJ =  filereader.o str.o main.o DatabaseFile.o
+OBJ =  filereader.o str.o main.o DatabaseFile.o ChainedIndex.o
  	
 %.o: %.c 
 	gcc -Wall -Wno-unused-function -Wno-deprecated -g  -c $(CFLAGS) $(DEFS) $< -o $@
